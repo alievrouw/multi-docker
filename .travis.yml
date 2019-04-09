@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t alievrouw/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run alievrow/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t alievrouw/multi-client ./client
+  - docker build -t alievrouw/multi-nginx ./nginx
+  - docker build -t alievrouw/multi-server ./server
+  - docker build -t alievrouw/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" -- password-stdin
+  - docker push alievrouw/multi-client
+  - docker push alievrouw/multi-nginx
+  - docker push alievrouw/multi-server
+  - docker push alievrouw/multi-worker
