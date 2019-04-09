@@ -1,21 +1,25 @@
 sudo: required
+
 services:
   - docker
 
 before_install:
-  - docker build -t alievrouw/react-test -f ./client/Dockerfile.dev ./client
 
+  - docker build -t "$DOCKER_ID"/react-client-test -f ./client/Dockerfile.dev ./client
 script:
-  - docker run alievrouw/react-test npm test -- --coverage
+  - docker run "$DOCKER_ID"/react-client-test npm test -- --coverage
 
 after_success:
-  - docker build -t alievrouw/multi-client ./client
-  - docker build -t alievrouw/multi-nginx ./nginx
-  - docker build -t alievrouw/multi-server ./server
-  - docker build -t alievrouw/multi-worker ./worker
+  - docker build -t "$DOCKER_ID"/multi-client ./client
+  - docker build -t "$DOCKER_ID"/multi-nginx -f ./nginx/Dockerfile.dev ./nginx
+  - docker build -t "$DOCKER_ID"/multi-server ./server
+  - docker build -t "$DOCKER_ID"/multi-worker ./worker
+  
+  # Login into docker hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
 
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" -- password-stdin
-  - docker push alievrouw/multi-client
-  - docker push alievrouw/multi-nginx
-  - docker push alievrouw/multi-server
-  - docker push alievrouw/multi-worker
+  # push images to docker hub
+  - docker push "$DOCKER_ID"/multi-client
+  - docker push "$DOCKER_ID"/multi-nginx
+  - docker push "$DOCKER_ID"/multi-server
+  - docker push "$DOCKER_ID"/multi-worker
